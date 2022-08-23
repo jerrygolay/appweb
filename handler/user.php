@@ -6,6 +6,11 @@ Le but de cette page de process php est de déclarer différentes fonctions lié
 
 */
 
+$servername = "localhost";
+$dbuser = "webappadmin";
+$passdb = "webapppa$$";
+$dbname = "webapp";
+
 // CREATION --> Liée à l'inscription d'un user
 function create_user($email, $age, $pseudo, $password, $description, $statut)
 {
@@ -164,34 +169,37 @@ function get_user_by_id($id)
 	return $result;
 }
 
-
 // SELECT --> Liée à l'affichage des informations utilisateur (Séléction par pseudo)
 function get_user_by_pseudo($pseudo)
 {
-	$servername = "localhost";
-	$username = "webappadmin";
-	$passdb = "webapppa$$";
-	$dbname = "webapp";
+	try {
+	// Connexion à la base de donnée et affichage des erreurs (retirer en production)
+	$pdo = new pdo("mysql:host=localhost;dbname=webapp", 'webappadmin', 'webapppa$$');
+	$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-	$conn = new mysqli($servername, $username, $passdb, $dbname);
-	if ($conn->connect_error) {
-	  die("Connection failed: " . $conn->connect_error);
-	}
-	
-	$pseudo = "'".$pseudo."'";
-	
-	$sql = "SELECT * FROM users WHERE pseudo= ".$pseudo;
-	
-	$result = $conn->query($sql);
-	
-	//var_dump($result);
-	
-	if ($result->num_rows > 0) {
-		$result = $result->fetch_assoc();
-		$conn->close();
+	// Requête préparée pour éviter les SQLI
+	$stmt = $pdo->prepare("SELECT * FROM users WHERE pseudo = :pseudo");
+	$stmt->bindParam(':pseudo', $pseudo, PDO::PARAM_STR);
+	$stmt->execute();
+
+	// Typage des variables avant envoi en base
+	$count = $stmt->rowCount();
+	$result = $stmt->fetchAll();
+
+	// Récupération des résultats et décompte de ces derniers (L'utilisateur existe ou n'existe pas en base)  
+	if ($count)
+	{
 		return $result;
 	} else {
-		$conn->close();
+		return false;
+	}
+	}
+
+	// Gestion et affichage des exceptions liées à la BDD
+	catch(Exception $e) {
+		echo 'Exception -> ';
+		var_dump($e->getMessage());
+		
 		return false;
 	}
 }

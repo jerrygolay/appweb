@@ -18,13 +18,13 @@ function auth($pseudo, $password_typed)
 		die('Utilisateur ou mot de passe inccorect');
 	} else {
 		// Récupération du mot de passe en base de donnée pour comparaison avec ce qui a été saisi par l'utilisateur
-		$password_db = $res['password'];
+		$password_db = $res[0]['password'];
 		
 		// Comparaison, si vraie retourne l'ID de l'utilisateur à authentifier, si faux l'authentification échoue
 		if ($password_typed == $password_db) {
-			return $res['id'];
+			return $res[0]['id'];
 		} else {
-			die('Mauvais mot de passe');
+			die('Utilisateur ou mot de passe inccorect');
 			return false;
 		}
 	}
